@@ -18,6 +18,7 @@ import (
 )
 
 // Github for testing purposes.
+//
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_github.go . Github
 type Github interface {
 	ListPullRequests([]githubv4.PullRequestState) ([]*PullRequest, error)
@@ -26,7 +27,7 @@ type Github interface {
 	GetPullRequest(string, string) (*PullRequest, error)
 	GetChangedFiles(string, string) ([]ChangedFileObject, error)
 	UpdateCommitStatus(string, string, string, string, string, string) error
-	DeletePreviousComments(string) error
+	DeletePreviousComments(string, string) error
 }
 
 // GithubClient for handling requests to the Github V3 and V4 APIs.
@@ -356,7 +357,7 @@ func (m *GithubClient) UpdateCommitStatus(commitRef, baseContext, statusContext,
 	return err
 }
 
-func (m *GithubClient) DeletePreviousComments(prNumber string) error {
+func (m *GithubClient) DeletePreviousComments(prNumber, commentTag string) error {
 	pr, err := strconv.Atoi(prNumber)
 	if err != nil {
 		return fmt.Errorf("failed to convert pull request number to int: %s", err)
@@ -376,6 +377,7 @@ func (m *GithubClient) DeletePreviousComments(prNumber string) error {
 							Author     struct {
 								Login string
 							}
+							BodyText string
 						}
 					}
 				} `graphql:"comments(last:$commentsLast)"`
@@ -396,9 +398,18 @@ func (m *GithubClient) DeletePreviousComments(prNumber string) error {
 
 	for _, e := range getComments.Repository.PullRequest.Comments.Edges {
 		if e.Node.Author.Login == getComments.Viewer.Login {
-			_, err := m.V3.Issues.DeleteComment(context.TODO(), m.Owner, m.Repository, e.Node.DatabaseId)
-			if err != nil {
-				return err
+			if commentTag != "" {
+				if strings.Contains(e.Node.BodyText, commentTag) {
+					_, err := m.V3.Issues.DeleteComment(context.TODO(), m.Owner, m.Repository, e.Node.DatabaseId)
+					if err != nil {
+						return err
+					}
+				}
+			} else {
+				_, err := m.V3.Issues.DeleteComment(context.TODO(), m.Owner, m.Repository, e.Node.DatabaseId)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
