@@ -611,6 +611,26 @@ func TestPutCommentsE2E(t *testing.T) {
 				"new comment",
 			},
 		},
+		{
+			description: "delete previous comments without removing old comments because tag doesn't match",
+			source: resource.Source{
+				Repository:  fmt.Sprintf("%s/%s", owner, repository),
+				V3Endpoint:  "https://api.github.com/",
+				V4Endpoint:  "https://api.github.com/graphql",
+				AccessToken: os.Getenv("GITHUB_ACCESS_TOKEN"),
+			},
+			getParams: resource.GetParameters{},
+			putParameters: resource.PutParameters{
+				Comment:                "new comment",
+				DeletePreviousComments: true,
+				DeleteCommentTag:       "hello",
+			},
+			previousComments: []string{"old comment"},
+			expectedComments: []string{
+				"old comment",
+				"new comment",
+			},
+		},
 	}
 
 	for _, tc := range tests {
