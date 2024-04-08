@@ -9,10 +9,11 @@ import (
 )
 
 type FakeGithub struct {
-	DeletePreviousCommentsStub        func(string) error
+	DeletePreviousCommentsStub        func(string, string) error
 	deletePreviousCommentsMutex       sync.RWMutex
 	deletePreviousCommentsArgsForCall []struct {
 		arg1 string
+		arg2 string
 	}
 	deletePreviousCommentsReturns struct {
 		result1 error
@@ -106,16 +107,17 @@ type FakeGithub struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeGithub) DeletePreviousComments(arg1 string) error {
+func (fake *FakeGithub) DeletePreviousComments(arg1, arg2 string) error {
 	fake.deletePreviousCommentsMutex.Lock()
 	ret, specificReturn := fake.deletePreviousCommentsReturnsOnCall[len(fake.deletePreviousCommentsArgsForCall)]
 	fake.deletePreviousCommentsArgsForCall = append(fake.deletePreviousCommentsArgsForCall, struct {
 		arg1 string
-	}{arg1})
+		arg2 string
+	}{arg1, arg2})
 	fake.recordInvocation("DeletePreviousComments", []interface{}{arg1})
 	fake.deletePreviousCommentsMutex.Unlock()
 	if fake.DeletePreviousCommentsStub != nil {
-		return fake.DeletePreviousCommentsStub(arg1)
+		return fake.DeletePreviousCommentsStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -130,7 +132,7 @@ func (fake *FakeGithub) DeletePreviousCommentsCallCount() int {
 	return len(fake.deletePreviousCommentsArgsForCall)
 }
 
-func (fake *FakeGithub) DeletePreviousCommentsCalls(stub func(string) error) {
+func (fake *FakeGithub) DeletePreviousCommentsCalls(stub func(string, string) error) {
 	fake.deletePreviousCommentsMutex.Lock()
 	defer fake.deletePreviousCommentsMutex.Unlock()
 	fake.DeletePreviousCommentsStub = stub
