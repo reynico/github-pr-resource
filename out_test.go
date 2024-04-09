@@ -210,7 +210,7 @@ func TestPut(t *testing.T) {
 
 			if tc.parameters.DeletePreviousComments {
 				if assert.Equal(t, 1, github.DeletePreviousCommentsCallCount()) {
-					pr := github.DeletePreviousCommentsArgsForCall(0)
+					pr, _ := github.DeletePreviousCommentsArgsForCall(0)
 					assert.Equal(t, tc.version.PR, pr)
 				}
 			}
